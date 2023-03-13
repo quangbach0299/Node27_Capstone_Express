@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model comment {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  image_id     Int
+  comment_date DateTime @db.DateTime(0)
+  content      String   @db.VarChar(255)
+  users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comment_ibfk_1")
+  image        image    @relation(fields: [image_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comment_ibfk_2")
+
+  @@index([image_id], map: "image_id")
+  @@index([user_id], map: "user_id")
+}
+
+model image {
+  id          Int         @id @default(autoincrement())
+  image_name  String      @db.VarChar(255)
+  directory   String      @db.VarChar(255)
+  description String      @db.VarChar(255)
+  user_id     Int
+  comment     comment[]
+  users       users       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "image_ibfk_1")
+  image_save  image_save?
+
+  @@index([user_id], map: "user_id")
+}
+
+model users {
+  id         Int          @id @default(autoincrement())
+  email      String       @unique(map: "email") @db.VarChar(255)
+  password   String       @db.VarChar(255)
+  name       String       @db.Char(255)
+  age        Int
+  avatar     String       @db.LongText
+  comment    comment[]
+  image      image[]
+  image_save image_save[]
+}
+
+model image_save {
+  user_id   Int
+  image_id  Int      @unique(map: "image_id")
+  save_date DateTime @db.DateTime(0)
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "image_save_ibfk_1")
+  image     image    @relation(fields: [image_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "image_save_ibfk_2")
+
+  @@id([user_id, image_id])
+}
